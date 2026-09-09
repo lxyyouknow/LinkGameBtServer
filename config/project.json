@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "projectKey": "pairpop-bt",
   "projectName": "LinkGameBtServer",
-  "runtime": "web-preview",
+  "runtime": "tiktok-native",
   "analyticsAppId": 1,
   "reportTimezone": "Asia/Tokyo",
   "releaseEnabled": true,
@@ -20,8 +20,9 @@
     "user": "linkgamebt"
   },
   "environment": "staging",
-  "tiktokClientKey": "",
+  "tiktokClientKey": "mgtbarscemwda9wa",
   "corsOrigins": [
     "https://jptt-aws.bffbond.com"
-  ]
+  ],
+  "allowWebPreview": true
 }

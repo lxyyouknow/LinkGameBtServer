@@ -42,3 +42,8 @@
 - 共享 S3 桶/CDN 已获确认，新项目仅使用 linkgamebt/ 前缀。新 API 为 linkgamebt.bffbond.com，SSH 为 linkgamebt@18.183.189.2，端口 23001。
 - 本次显式 web-preview + staging：启用原有测试账号云存档与 LocalPlatform 模拟广告流程。后续 TikTok 构建必须切回 tiktok-native，填平台配置并关闭测试登录；不允许静默降级。
 - 广告规则、节点及 TikTok 后台添加由后续工作人员处理；本次不新增广告或改变奖励。
+
+## 2026-09-09 最新第一版发布授权
+- lxy 已提供新运维和 TikTok 应用参数，明确授权部署新服务端/Web、上传 TikTok Preview；覆盖前文默认不发布和参数待提供的旧状态。
+- 当前新 staging 支持 TikTok 正式换票，并通过显式 allowWebPreview/BT_ALLOW_WEB_PREVIEW 保留 Web 测试身份；production 禁止测试身份。客户端 Native 无模拟兜底。
+- 原广告触发点不变；策划后续提供新方案。本轮停止游戏浏览器测试，由 lxy 做真机操作验收；自动检查不能冒充真机通过。

@@ -6,7 +6,7 @@ import {resolve,join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 const root=resolve(import.meta.dirname,'..');
 const project=JSON.parse(readFileSync(join(root,'config/project.json')));
-assert.equal(project.runtime,'web-preview');assert.equal(project.environment,'staging');
+assert.ok(project.runtime==='web-preview'||(project.runtime==='tiktok-native'&&project.allowWebPreview===true));assert.equal(project.environment,'staging');
 const secrets=JSON.parse(readFileSync(join(root,'.env.deploy.local.json')));
 const base='http://127.0.0.1:23301';
 async function api(path,body,token,method=body?'POST':'GET'){

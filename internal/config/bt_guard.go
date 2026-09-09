@@ -57,7 +57,8 @@ func validateBTEnvironment(getenv func(string) string) error {
 		if getenv("BT_RUNTIME") != "" && getenv("BT_RUNTIME") != "tiktok-native" {
 			return errors.New("未知 BT_RUNTIME")
 		}
-		if getenv("ENABLE_TEST_ACCOUNT_LOGIN") != "false" || getenv("ENABLE_TIKTOK_LOGIN") != "true" {
+		allowWeb := env == "staging" && getenv("BT_ALLOW_WEB_PREVIEW") == "true"
+		if (getenv("ENABLE_TEST_ACCOUNT_LOGIN") != "false" && !(allowWeb && getenv("ENABLE_TEST_ACCOUNT_LOGIN") == "true")) || getenv("ENABLE_TIKTOK_LOGIN") != "true" {
 			return errors.New("BT 云环境只允许 TikTok 登录，必须关闭免密码测试账号")
 		}
 		if getenv("TIKTOK_CLIENT_KEY") == "" || getenv("TIKTOK_CLIENT_SECRET") == "" {

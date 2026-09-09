@@ -74,3 +74,28 @@ func TestBTAssignedWebEnvironment(t *testing.T) {
 		}
 	}
 }
+
+// 2026-09-09：TikTok 预览与已发布 Web 共用新 staging，身份仍由 provider 隔离。
+func TestBTNativeWithExplicitWebPreview(t *testing.T) {
+	values := map[string]string{
+		"BT_PROJECT_KEY": "pairpop-bt", "BT_RUNTIME": "tiktok-native", "BT_ENV": "staging", "APP_ENV": "staging",
+		"BT_DB_HOST": "db.example.com", "BT_DB_PORT": "3306", "BT_DB_NAME": "linkgame_bt_staging", "BT_DB_USER": "linkgame_bt_app",
+		"MYSQL_DSN":                 "linkgame_bt_app:fixture-password@tcp(db.example.com:3306)/linkgame_bt_staging",
+		"ENABLE_TEST_ACCOUNT_LOGIN": "true", "ENABLE_TIKTOK_LOGIN": "true", "BT_ALLOW_WEB_PREVIEW": "true",
+		"TIKTOK_CLIENT_KEY": "fixture-key", "TIKTOK_CLIENT_SECRET": "fixture-secret",
+	}
+	get := func(k string) string { return values[k] }
+	if err := validateBTEnvironment(get); err != nil {
+		t.Fatal(err)
+	}
+	delete(values, "BT_ALLOW_WEB_PREVIEW")
+	if validateBTEnvironment(get) == nil {
+		t.Fatal("未显式授权的混合模式必须拒绝")
+	}
+	values["BT_ALLOW_WEB_PREVIEW"] = "true"
+	values["APP_ENV"] = "production"
+	values["BT_ENV"] = "production"
+	if validateBTEnvironment(get) == nil {
+		t.Fatal("production 不得开启 Web 测试账号")
+	}
+}

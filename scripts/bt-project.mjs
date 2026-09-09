@@ -8,6 +8,8 @@ export function validateProject(p,{release=false}={}) {
  const errors=[];
  if(p.projectKey!=='pairpop-bt'||!['tiktok-native','web-preview'].includes(p.runtime)||p.analyticsAppId!==1||p.reportTimezone!=='Asia/Tokyo') errors.push('BT 项目/平台/统计标识不一致');
  if(p.runtime==='web-preview'&&p.environment!=='staging')errors.push('Web 测试登录只允许 staging');
+ if(p.allowWebPreview!==undefined&&typeof p.allowWebPreview!=='boolean')errors.push('allowWebPreview 必须是布尔值');
+ if(p.allowWebPreview===true&&p.environment!=='staging')errors.push('Web 测试账号只允许 staging');
  if(!['staging','production'].includes(p.environment)) errors.push('云环境必须为 staging 或 production');
  for(const origin of p.corsOrigins??[]){try{const u=new URL(origin);if(u.protocol!=='https:'||u.origin!==origin)throw new Error();}catch{errors.push('CORS 必须是无路径的明确 HTTPS 来源');}}
  const visit=(v)=>{for(const [k,x] of Object.entries(v??{})){if(/secret|password|access.?key|access.?token/i.test(k)) errors.push('公开配置禁止秘密字段');if(x&&typeof x==='object')visit(x);}};visit(p);
@@ -31,7 +33,7 @@ export function validateProject(p,{release=false}={}) {
 function outputs(p){
  const remote=p.remoteRoot||'/home/linkgame-bt/linkgame-bt-server',port=p.httpPort||24020,domain=p.apiDomain||'bt-api.example.invalid';
  const web=p.runtime==='web-preview';
- const expected={BT_PROJECT_KEY:p.projectKey,BT_RUNTIME:p.runtime,BT_ENV:p.environment,APP_ENV:p.environment,HTTP_ADDR:`0.0.0.0:${port}`,BT_DB_HOST:p.database.host,BT_DB_PORT:p.database.port??'',BT_DB_NAME:p.database.name,BT_DB_USER:p.database.user,TIKTOK_CLIENT_KEY:p.tiktokClientKey,ENABLE_TIKTOK_LOGIN:String(!web),ENABLE_TEST_ACCOUNT_LOGIN:String(web),ANALYTICS_ENABLED:'true',ANALYTICS_TIMEZONE:p.reportTimezone};
+ const expected={BT_PROJECT_KEY:p.projectKey,BT_RUNTIME:p.runtime,BT_ENV:p.environment,APP_ENV:p.environment,HTTP_ADDR:`0.0.0.0:${port}`,BT_DB_HOST:p.database.host,BT_DB_PORT:p.database.port??'',BT_DB_NAME:p.database.name,BT_DB_USER:p.database.user,TIKTOK_CLIENT_KEY:p.tiktokClientKey,ENABLE_TIKTOK_LOGIN:String(!web),ENABLE_TEST_ACCOUNT_LOGIN:String(web||p.allowWebPreview===true),BT_ALLOW_WEB_PREVIEW:String(p.allowWebPreview===true),ANALYTICS_ENABLED:'true',ANALYTICS_TIMEZONE:p.reportTimezone};
  const release={RELEASE_SSH_HOST:p.sshHost,RELEASE_SSH_USER:p.sshUser,RELEASE_SSH_KEY:p.sshKeyPath,RELEASE_REMOTE_ROOT:p.remoteRoot,RELEASE_SYSTEMD_SERVICE:p.systemdService,RELEASE_HEALTH_BASE_URL:p.httpPort?`http://127.0.0.1:${p.httpPort}`:''};
  const envText=(o)=>Object.entries(o).map(([k,v])=>`${k}='${v}'`).join('\n')+'\n';
  const runtime={...expected,LOG_LEVEL:'info',CORS_ALLOWED_ORIGINS:p.apiDomain?[`https://${p.apiDomain}`,...(p.corsOrigins??[])].join(','):'',SESSION_TTL:'720h',TIKTOK_CLIENT_SECRET:'',ANALYTICS_GM_USERS:'',MYSQL_DSN:''};

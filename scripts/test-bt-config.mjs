@@ -4,7 +4,7 @@ import {validateProject,checkProject} from './bt-project.mjs';
 const baseline=checkProject();
 assert.deepEqual(validateProject(baseline,{release:true}),[]);
 assert.ok(validateProject({...baseline,environment:'production'},{release:true}).length);
-assert.ok(validateProject({...baseline,runtime:'tiktok-native'},{release:true}).length);
+assert.ok(validateProject({...baseline,tiktokClientKey:''},{release:true}).length);
 const valid={...baseline,runtime:'tiktok-native',releaseEnabled:true,apiDomain:'bt-api.example.com',sshHost:'bt-host.example.com',sshUser:'btuser',sshKeyPath:'/tmp/fixture-key',remoteRoot:'/home/btuser/linkgame-bt-server',httpPort:24020,tiktokClientKey:'fixture-key',database:{host:'db.example.com',port:3306,name:'linkgame_bt_staging',user:'linkgame_bt_app'}};
 assert.deepEqual(validateProject(valid,{release:true}),[]);
 for(const mutate of [p=>p.releaseEnabled=false,p=>p.remoteRoot='/home/old/server',p=>p.remoteRoot='/home/linkgame-bt/../old',p=>p.database.name='linkgame',p=>p.database.port=70000,p=>p.sshHost='bt.example.invalid',p=>p.tiktokClientKey='',p=>p.password='fixture',p=>p.analyticsAppId=2]){const p=structuredClone(valid);mutate(p);assert.ok(validateProject(p,{release:true}).length);}
