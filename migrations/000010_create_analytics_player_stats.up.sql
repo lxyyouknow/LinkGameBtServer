@@ -1,0 +1,22 @@
+CREATE TABLE analytics_player_stats (
+    player_id BIGINT UNSIGNED NOT NULL,
+    app_id INT UNSIGNED NOT NULL DEFAULT 1,
+    sdk_type INT NOT NULL DEFAULT 0,
+    channel INT NOT NULL DEFAULT 0,
+    first_seen_date DATE NOT NULL,
+    last_login_date DATE NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    last_login_at DATETIME(6) NOT NULL,
+    login_count INT UNSIGNED NOT NULL DEFAULT 0,
+    enter_game_count INT UNSIGNED NOT NULL DEFAULT 0,
+    current_level INT UNSIGNED NOT NULL DEFAULT 0,
+    online_duration BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    level_pass_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    theme_select_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    prop_use_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (player_id),
+    KEY idx_analytics_player_cohort (app_id, sdk_type, channel, first_seen_date),
+    KEY idx_analytics_player_level (app_id, sdk_type, channel, current_level),
+    CONSTRAINT fk_analytics_player_stats_player FOREIGN KEY (player_id) REFERENCES players (id) ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='无广告版玩家统计汇总';

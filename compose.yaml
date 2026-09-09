@@ -1,0 +1,18 @@
+name: linkgame-bt-local
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: linkgame_bt_development
+      MYSQL_USER: linkgame_bt_app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请先在本机设置新的数据库密码}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请先在本机设置新的 root 密码}
+      TZ: UTC
+    ports:
+      - "127.0.0.1:3318:3306"
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_0900_ai_ci]
+    volumes:
+      - bt_mysql:/var/lib/mysql
+volumes:
+  bt_mysql:

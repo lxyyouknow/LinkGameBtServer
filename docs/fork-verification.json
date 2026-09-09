@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-09",
+  "sourceUnchanged": true,
+  "sourceChanges": [],
+  "checked": {
+    "assets": 0,
+    "model": 0,
+    "migrationsAndStore": 92
+  },
+  "assetChanges": [],
+  "modelChangesBeyondStorageNamespace": [],
+  "migrationOrStoreChanges": [],
+  "jsonParsed": 4,
+  "jsonErrors": [],
+  "changedFromSnapshot": [
+    "cmd/migrate/main.go",
+    "cmd/api/main.go",
+    "deploy/systemd/app.env.example",
+    "deploy/systemd/linkgame.service",
+    "deploy/nginx/linkgame.conf",
+    "docs/服务器部署.md",
+    "docs/统计后台老板视图与数据口径.md",
+    "docs/数据库设计.md",
+    "docs/API接口.md",
+    "docs/服务端交接说明.md",
+    "internal/httpapi/httpapi_test.go",
+    "internal/httpapi/httpapi.go",
+    "internal/adminui/admin.html",
+    "internal/analytics/service_test.go",
+    "scripts/release-production-windows.ps1",
+    "scripts/release-production.sh",
+    "scripts/build-linux-amd64.sh",
+    "AGENTS.md",
+    "README.md",
+    ".gitignore",
+    ".env.example",
+    ".release.env.example",
+    "compose.yaml"
+  ]
+}

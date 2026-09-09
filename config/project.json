@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "projectKey": "pairpop-bt",
+  "projectName": "LinkGameBtServer",
+  "runtime": "web-preview",
+  "analyticsAppId": 1,
+  "reportTimezone": "Asia/Tokyo",
+  "releaseEnabled": true,
+  "apiDomain": "linkgamebt.bffbond.com",
+  "sshHost": "18.183.189.2",
+  "sshUser": "linkgamebt",
+  "sshKeyPath": "/Users/lxy/Downloads/linkgamebt@18.183.189.2.key",
+  "remoteRoot": "/home/linkgamebt/linkgame-bt-server",
+  "httpPort": 23001,
+  "systemdService": "linkgame-bt.service",
+  "database": {
+    "host": "database-2.c9ie8y6eckdj.ap-northeast-1.rds.amazonaws.com",
+    "port": 3306,
+    "name": "linkgamebt",
+    "user": "linkgamebt"
+  },
+  "environment": "staging",
+  "tiktokClientKey": "",
+  "corsOrigins": [
+    "https://jptt-aws.bffbond.com"
+  ]
+}

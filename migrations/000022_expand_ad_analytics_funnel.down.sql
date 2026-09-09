@@ -1,0 +1,14 @@
+ALTER TABLE analytics_events
+    DROP CHECK chk_analytics_ad_result,
+    DROP CHECK chk_analytics_ad_stage,
+    DROP CHECK chk_analytics_platform,
+    DROP INDEX idx_analytics_ad_attempt,
+    DROP COLUMN ad_preloaded,
+    DROP COLUMN ad_duration_ms,
+    DROP COLUMN ad_result,
+    DROP COLUMN ad_sub_error_code,
+    DROP COLUMN ad_error_stage,
+    DROP COLUMN ad_attempt_id,
+    DROP COLUMN platform,
+    DROP COLUMN client_version,
+    COMMENT = '小游戏原始幂等统计事件（含广告生命周期）';

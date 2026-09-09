@@ -1,0 +1,28 @@
+[Unit]
+Description=LinkGame BT API
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=/home/linkgamebt/linkgame-bt-server/current
+EnvironmentFile=/home/linkgamebt/linkgame-bt-server/shared/app.env
+ExecStart=/home/linkgamebt/linkgame-bt-server/current/bin/linkgame-bt-api
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=linkgame-bt
+UMask=0077
+LimitNOFILE=65535
+NoNewPrivileges=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=default.target

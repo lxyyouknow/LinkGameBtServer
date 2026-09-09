@@ -1,0 +1,20 @@
+CREATE TABLE player_season_days (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    player_id BIGINT UNSIGNED NOT NULL,
+    season_key CHAR(7) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    day_key DATE NOT NULL,
+    day TINYINT UNSIGNED NOT NULL,
+    cleared_levels TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    login_claimed_at DATETIME(6) NULL,
+    clear_claimed_at DATETIME(6) NULL,
+    reward_claimed_at DATETIME(6) NULL,
+    reward_snapshot JSON NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_player_season_day (player_id, day_key),
+    KEY idx_season_days_month (player_id, season_key, day),
+    CONSTRAINT fk_season_day_player FOREIGN KEY (player_id) REFERENCES players (id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT chk_season_reward_day CHECK (day BETWEEN 1 AND 25),
+    CONSTRAINT chk_season_cleared_levels CHECK (cleared_levels <= 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='玩家赛季每日任务与固定奖励快照';

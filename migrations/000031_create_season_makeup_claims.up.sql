@@ -1,0 +1,20 @@
+CREATE TABLE player_season_makeup_claims (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    player_id BIGINT UNSIGNED NOT NULL,
+    season_key CHAR(7) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    target_day_key DATE NOT NULL,
+    target_day TINYINT UNSIGNED NOT NULL,
+    session_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    ad_attempt_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    business_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    reward_snapshot JSON NOT NULL,
+    save_revision BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME(6) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_season_makeup_target (player_id, target_day_key),
+    UNIQUE KEY uk_season_makeup_session (session_id),
+    UNIQUE KEY uk_season_makeup_attempt (player_id, ad_attempt_id),
+    KEY idx_season_makeup_audit (player_id, season_key, created_at),
+    CONSTRAINT fk_season_makeup_player FOREIGN KEY (player_id) REFERENCES players (id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT chk_season_makeup_target_day CHECK (target_day BETWEEN 1 AND 25)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='赛季广告补签权威核销与奖励审计';

@@ -1,0 +1,1 @@
+ALTER TABLE player_saves ADD COLUMN reached_level_at DATETIME(6) NULL COMMENT '首次达到当前最高关卡的稳定时间' AFTER level, ADD KEY idx_player_saves_global_leaderboard (level DESC, reached_level_at ASC, player_id ASC);

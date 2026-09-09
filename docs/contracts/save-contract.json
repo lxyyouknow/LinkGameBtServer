@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "identityProviders": ["guest", "test_account", "tiktok"],
+  "profileKey": "<provider>:<serverPlayerId>",
+  "progressFields": ["level", "tutorialCompleted"],
+  "settingFields": ["soundEnabled", "musicEnabled", "effectsEnabled", "vibrationEnabled", "selectedTheme", "collectingTheme"],
+  "authoritativeAssets": ["coins", "hint", "shuffle", "remove", "themeFragments"],
+  "authoritativeMissionClaims": ["home_shortcut:v1", "profile_revisit:v1"],
+  "mutationReasons": {
+    "coins": ["level_complete", "gift_reward"],
+    "props": ["use", "level_complete", "gift_reward"],
+    "themeFragments": ["level_complete", "event_reward"]
+  },
+  "limits": {
+    "level": [0, 999],
+    "themeId": [0, 58],
+    "normalThemeFragments": 27,
+    "limitedThemeFragments": 34,
+    "mutationBatch": 100
+  },
+  "endpoints": {
+    "login": "/v1/auth/platform",
+    "getSave": "/v1/save",
+    "putSave": "/v1/save"
+  },
+  "conflictPolicy": "revision",
+  "missionClaimResponseField": "claimedTikTokMissions"
+}

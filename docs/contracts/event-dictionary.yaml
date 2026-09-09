@@ -1,0 +1,25 @@
+schema: 2
+app_id: 1
+ads_enabled: true
+common_fields: [id, eventTime, appId, sdkType, channel, gameSessionId]
+events:
+  - { name: session_start, trigger: confirmed_login_once_per_cold_start, purpose: session_and_retention }
+  - { name: enter_game, trigger: confirmed_login_and_loading_finished_and_main_menu_interactive, purpose: login_success }
+  - { name: main_level_start, trigger: main_level_start_action_accepted, purpose: activation }
+  - { name: online_time, trigger: foreground_segment_or_hide, fields: [durationSeconds], purpose: engagement }
+  - { name: level_start, trigger: playable_board_ready, fields: [level], purpose: level_funnel }
+  - { name: first_click, trigger: first_valid_tile_click, fields: [level], purpose: level_funnel }
+  - { name: first_match, trigger: first_pair_actually_removed, fields: [level], purpose: level_funnel }
+  - { name: progress_25, trigger: authoritative_removed_ratio_crosses_25, fields: [level], purpose: level_funnel }
+  - { name: progress_50, trigger: authoritative_removed_ratio_crosses_50, fields: [level], purpose: level_funnel }
+  - { name: progress_75, trigger: authoritative_removed_ratio_crosses_75, fields: [level], purpose: level_funnel }
+  - { name: level_pass, trigger: state_machine_enters_win, fields: [level], purpose: level_funnel }
+  - { name: next_level, trigger: next_level_board_ready, fields: [level], purpose: level_funnel }
+  - { name: retry, trigger: retry_board_ready, fields: [level], purpose: level_funnel }
+  - { name: level_fail, trigger: state_machine_enters_fail, fields: [level], purpose: level_funnel }
+  - { name: theme_open, trigger: theme_collection_panel_opened, purpose: theme_usage }
+  - { name: theme_select, trigger: activated_theme_applied, fields: [themeId], purpose: theme_usage }
+  - { name: prop_use, trigger: prop_effect_committed, fields: [propType], purpose: prop_usage }
+  - { name: ad_create, trigger: ad_instance_created, fields: [adFormat, adPlacement], purpose: ad_performance }
+  - { name: ad_success, trigger: rewarded_completed_or_interstitial_closed, fields: [adFormat, adPlacement], purpose: ad_performance }
+  - { name: ad_fail, trigger: unsupported_load_show_no_fill_or_early_close, fields: [adFormat, adPlacement, adErrorCode], purpose: ad_performance }
