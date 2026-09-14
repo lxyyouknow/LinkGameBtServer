@@ -29,7 +29,7 @@ type PropCounts struct {
 
 // InitialPropCounts 是所有登录渠道创建新玩家存档时唯一使用的初始库存工厂。
 func InitialPropCounts() PropCounts {
-	return PropCounts{}
+	return PropCounts{Hint: 1, Shuffle: 1, Remove: 1}
 }
 
 var (

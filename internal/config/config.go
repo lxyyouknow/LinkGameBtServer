@@ -22,6 +22,7 @@ var validAppEnvironments = []string{
 
 // Config 是服务启动所需的基础配置。
 type Config struct {
+	AdPolicyPath                    string
 	AppEnv                          string
 	HTTPAddr                        string
 	LogLevel                        slog.Level
@@ -155,6 +156,7 @@ func Load() (Config, error) {
 	}
 
 	return Config{
+		AdPolicyPath:                    envOrDefault("AD_POLICY_CONFIG_PATH", "deploy/config/ad-policy.json"),
 		AppEnv:                          appEnv,
 		HTTPAddr:                        httpAddr,
 		LogLevel:                        logLevel,

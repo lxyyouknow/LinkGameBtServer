@@ -150,6 +150,7 @@ type Filter struct {
 }
 
 type Overview struct {
+	EffectiveLoginPlayers         int64   `json:"effectiveLoginPlayers"`
 	NewPlayers                    int64   `json:"newPlayers"`
 	ActivePlayers                 int64   `json:"activePlayers"`
 	LoginCount                    int64   `json:"loginCount"`
@@ -218,12 +219,13 @@ type OverviewTrendItem struct {
 }
 
 type DailyItem struct {
-	Date          string  `json:"date"`
-	NewPlayers    int64   `json:"newPlayers"`
-	ActivePlayers int64   `json:"activePlayers"`
-	LoginCount    int64   `json:"loginCount"`
-	AverageOnline float64 `json:"averageOnlineSeconds"`
-	LevelPasses   int64   `json:"levelPasses"`
+	EffectiveLoginPlayers int64   `json:"effectiveLoginPlayers"`
+	Date                  string  `json:"date"`
+	NewPlayers            int64   `json:"newPlayers"`
+	ActivePlayers         int64   `json:"activePlayers"`
+	LoginCount            int64   `json:"loginCount"`
+	AverageOnline         float64 `json:"averageOnlineSeconds"`
+	LevelPasses           int64   `json:"levelPasses"`
 }
 
 type CountItem struct {
@@ -378,6 +380,8 @@ func (service *Service) Daily(ctx context.Context, filter Filter) ([]DailyItem, 
 	if !validFilter(filter) {
 		return nil, ErrInvalidFilter
 	}
+	_, offsetSeconds := filter.From.Zone()
+	filter.ReportUTCOffsetMinutes = offsetSeconds / 60
 	return service.store.Daily(ctx, filter)
 }
 func (service *Service) LevelDistribution(ctx context.Context, filter Filter) ([]LevelItem, error) {
@@ -472,7 +476,7 @@ func validateEvent(event Event) error {
 		return ErrInvalidEvent
 	}
 	if event.Name == EventPropUse {
-		if event.PropType != player.PropTypeHint && event.PropType != player.PropTypeShuffle && event.PropType != player.PropTypeRemove {
+		if event.PropType != player.PropTypeHint && event.PropType != player.PropTypeShuffle && event.PropType != player.PropTypeRemove && event.PropType != "potion" {
 			return ErrInvalidEvent
 		}
 	} else if event.PropType != "" {

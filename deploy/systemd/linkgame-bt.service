@@ -8,6 +8,7 @@ StartLimitBurst=5
 [Service]
 Type=simple
 WorkingDirectory=/home/linkgamebt/linkgame-bt-server/current
+Environment=AD_POLICY_CONFIG_PATH=/home/linkgamebt/linkgame-bt-server/shared/ad-policy.json
 EnvironmentFile=/home/linkgamebt/linkgame-bt-server/shared/app.env
 ExecStart=/home/linkgamebt/linkgame-bt-server/current/bin/linkgame-bt-api
 Restart=on-failure

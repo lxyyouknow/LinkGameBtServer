@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"linkgame-server/internal/adpolicy"
 	"linkgame-server/internal/adreward"
 	"linkgame-server/internal/analytics"
 	"linkgame-server/internal/auth"
@@ -100,6 +101,7 @@ type GMService interface {
 }
 
 type Dependencies struct {
+	AdPolicyPath                    string
 	ReadinessChecker                ReadinessChecker
 	GuestLoginService               GuestLoginService
 	TestAccountLogin                TestAccountLoginService
@@ -136,6 +138,13 @@ func NewHandler(logger *slog.Logger, dependencies Dependencies) http.Handler {
 	mux.HandleFunc("/v1/auth/test-account", handleTestLogin(dependencies.TestAccountLogin, dependencies.EnableTestAccount))
 	mux.HandleFunc("/v1/auth/platform", handlePlatformLogin(dependencies.PlatformLogin, dependencies.EnableTikTokLogin))
 	mux.HandleFunc("/v1/platform/features", handlePlatformFeatures(dependencies))
+	mux.HandleFunc("/v1/ads/policy", func(w http.ResponseWriter, r *http.Request) {
+		if !method(w, r, http.MethodGet) {
+			return
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, 200, adpolicy.Read(dependencies.AdPolicyPath))
+	})
 	mux.Handle("/v1/save", requireSession(dependencies.SessionAuthenticator, handleSave(dependencies.SaveService)))
 	mux.Handle("/v1/leaderboards/global", requireSession(dependencies.SessionAuthenticator, handleGlobalLeaderboard(dependencies.LeaderboardService)))
 	mux.Handle("/v1/player/profile/tiktok", requireSession(dependencies.SessionAuthenticator, handleTikTokLeaderboardProfile(dependencies.LeaderboardService)))

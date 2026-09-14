@@ -12,6 +12,32 @@ import (
 
 type stubStore struct{}
 
+type dailyFilterStore struct {
+	stubStore
+	filter Filter
+}
+
+func (store *dailyFilterStore) Daily(_ context.Context, filter Filter) ([]DailyItem, error) {
+	store.filter = filter
+	return nil, nil
+}
+
+func TestDaily按筛选时区传递自然日偏移(t *testing.T) {
+	location, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	from := time.Date(2026, 9, 11, 0, 0, 0, 0, location)
+	store := &dailyFilterStore{}
+	service := NewService(store, location)
+	if _, err := service.Daily(context.Background(), Filter{From: from, To: from.Add(24 * time.Hour), AppID: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if store.filter.ReportUTCOffsetMinutes != 540 || !store.filter.From.Equal(from) || !store.filter.To.Equal(from.Add(24*time.Hour)) {
+		t.Fatalf("每日报表时区或日期边界错误: %+v", store.filter)
+	}
+}
+
 func (stubStore) Ingest(_ context.Context, _ uint64, events []Event, _ time.Time, _ string) ([]string, error) {
 	ids := make([]string, len(events))
 	for i := range events {
@@ -281,5 +307,38 @@ func TestBTOnlineTime15秒及尾段兼容(t *testing.T) {
 		if err := validateEvent(event); err == nil {
 			t.Fatalf("%d秒非法分段未拒绝", seconds)
 		}
+	}
+}
+
+func TestIngest魔药广告与使用独立统计(t *testing.T) {
+	service := NewService(stubStore{}, time.UTC)
+	for _, name := range []EventName{EventAdRequest, EventAdCreate, EventAdLoad, EventAdShow, EventAdClose, EventAdSuccess, EventAdClaimOK, EventAdFail, EventAdClaimFail} {
+		event := baseEvent(name)
+		event.AdPlacement = "potion"
+		event.AdFormat = "rewarded"
+		event.AdAttemptID = "ad:potion"
+		if name == EventAdClose {
+			event.AdResult = "completed"
+		}
+		if name == EventAdFail {
+			event.AdErrorCode = "NO_FILL"
+			event.AdFailureStage = "load"
+		}
+		if name == EventAdClaimFail {
+			event.AdErrorCode = "CLAIM_FAILED"
+			event.AdFailureStage = "reward_claim"
+		}
+		if _, err := service.Ingest(context.Background(), 1, []Event{event}); err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+	}
+	event := baseEvent(EventPropUse)
+	event.PropType = "potion"
+	if _, err := service.Ingest(context.Background(), 1, []Event{event}); err != nil {
+		t.Fatal(err)
+	}
+	event.PropType = "unknown_prop"
+	if _, err := service.Ingest(context.Background(), 1, []Event{event}); !errors.Is(err, ErrInvalidEvent) {
+		t.Fatalf("未知道具=%v", err)
 	}
 }

@@ -68,6 +68,7 @@ mkdir -p \"\$release_dir\"
 tar -xzf '$remote_archive' -C \"\$release_dir\" --strip-components=1
 [ -x \"\$release_dir/bin/linkgame-bt-api\" ]
 [ -x \"\$release_dir/bin/linkgame-bt-migrate\" ]
+if [ ! -e '$RELEASE_REMOTE_ROOT/shared/ad-policy.json' ]; then cp \"\$release_dir/deploy/config/ad-policy.json\" '$RELEASE_REMOTE_ROOT/shared/ad-policy.json'; fi
 set -a
 . '$RELEASE_REMOTE_ROOT/shared/app.env'
 set +a

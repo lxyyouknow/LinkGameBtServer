@@ -29,13 +29,13 @@ type staticResult int64
 func (result staticResult) LastInsertId() (int64, error) { return 0, nil }
 func (result staticResult) RowsAffected() (int64, error) { return int64(result), nil }
 
-func TestEnsureSave使用零初始库存且不覆盖旧库存(t *testing.T) {
+func TestEnsureSave使用各一初始库存且不覆盖旧库存(t *testing.T) {
 	execer := &recordingExecer{}
 	if err := ensureSave(context.Background(), execer, 42); err != nil {
 		t.Fatalf("ensureSave() error = %v", err)
 	}
 
-	wantArgs := []any{uint64(42), int64(0), int64(0), int64(0)}
+	wantArgs := []any{uint64(42), int64(1), int64(1), int64(1)}
 	if len(execer.args) != len(wantArgs) {
 		t.Fatalf("参数数量 = %d，期望 %d", len(execer.args), len(wantArgs))
 	}
@@ -90,7 +90,7 @@ func TestIntegrationTikTok平台任务奖励原子入账且跨设备幂等(t *te
 	if err != nil {
 		t.Fatalf("首次领取平台任务奖励失败: %v", err)
 	}
-	if first.Revision != 2 || first.HintCount != 3 || first.RemoveCount != 3 ||
+	if first.Revision != 2 || first.HintCount != 4 || first.RemoveCount != 4 ||
 		len(first.ClaimedTikTokMissions) != 2 || len(first.AcceptedPropMutationIDs) != 2 ||
 		len(first.AcceptedThemeFragmentMutationIDs) != 2 {
 		t.Fatalf("首次平台任务奖励结果错误: %#v", first)
@@ -101,7 +101,7 @@ func TestIntegrationTikTok平台任务奖励原子入账且跨设备幂等(t *te
 	if err != nil {
 		t.Fatalf("重复领取平台任务奖励失败: %v", err)
 	}
-	if replay.HintCount != 3 || replay.RemoveCount != 3 || replay.Revision != 3 ||
+	if replay.HintCount != 4 || replay.RemoveCount != 4 || replay.Revision != 3 ||
 		len(replay.ClaimedTikTokMissions) != 2 {
 		t.Fatalf("重复领取改变了权威奖励: %#v", replay)
 	}
@@ -149,7 +149,7 @@ func TestIntegration旧版平台任务流水保持兼容(t *testing.T) {
 	if err != nil {
 		t.Fatalf("旧版添加桌面奖励失败: %v", err)
 	}
-	if result.Coins != 300 || result.HintCount != 1 || result.ShuffleCount != 1 ||
+	if result.Coins != 300 || result.HintCount != 2 || result.ShuffleCount != 2 ||
 		len(result.ClaimedTikTokMissions) != 1 || result.ClaimedTikTokMissions[0] != player.TikTokMissionHomeShortcut {
 		t.Fatalf("旧版添加桌面奖励结果错误: %#v", result)
 	}

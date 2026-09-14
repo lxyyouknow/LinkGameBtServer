@@ -150,8 +150,9 @@ func (store *AnalyticsStore) Ingest(ctx context.Context, playerID uint64, events
 }
 
 func (store *AnalyticsStore) AdPerformance(ctx context.Context, filter analytics.Filter) ([]analytics.AdItem, error) {
+	placement := adConsumptionPlacementSQL()
 	where, args := eventDateWhere("e", filter, "e.received_at")
-	rows, err := store.db.QueryContext(ctx, `SELECT DATE_FORMAT(e.received_at,'%Y-%m-%d'),COALESCE(e.client_version,'legacy'),COALESCE(e.platform,'legacy'),e.ad_format,e.ad_placement,
+	rows, err := store.db.QueryContext(ctx, `SELECT DATE_FORMAT(e.received_at,'%Y-%m-%d'),COALESCE(e.client_version,'legacy'),COALESCE(e.platform,'legacy'),e.ad_format,`+placement+` AS consumption_placement,
 		COUNT(DISTINCT CASE WHEN e.event_name='ad_request' THEN COALESCE(NULLIF(e.ad_attempt_id,''),e.event_id) END),
 		COUNT(DISTINCT CASE WHEN e.event_name='ad_create' THEN COALESCE(NULLIF(e.ad_attempt_id,''),e.event_id) END),
 		COUNT(DISTINCT CASE WHEN e.event_name='ad_create' AND e.ad_preloaded=TRUE THEN COALESCE(NULLIF(e.ad_attempt_id,''),e.event_id) END),
@@ -167,7 +168,7 @@ func (store *AnalyticsStore) AdPerformance(ctx context.Context, filter analytics
 		COALESCE(AVG(CASE WHEN e.event_name='ad_show' THEN e.ad_duration_ms END),0),
 		COALESCE(AVG(CASE WHEN e.event_name='ad_close' THEN e.ad_duration_ms END),0)
 		FROM analytics_events e WHERE `+where+` AND e.event_name IN ('ad_request','ad_create','ad_load','ad_show','ad_close','ad_success','ad_fail','ad_reward_claim_success','ad_reward_claim_fail')
-		GROUP BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,e.ad_placement ORDER BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,e.ad_placement`, args...)
+		GROUP BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,consumption_placement ORDER BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,consumption_placement`, args...)
 	if err != nil {
 		return nil, fmt.Errorf("查询广告统计失败: %w", err)
 	}
@@ -200,12 +201,13 @@ func (store *AnalyticsStore) AdPerformance(ctx context.Context, filter analytics
 }
 
 func (store *AnalyticsStore) AdFailures(ctx context.Context, filter analytics.Filter) ([]analytics.AdFailureItem, error) {
+	placement := adConsumptionPlacementSQL()
 	where, args := eventDateWhere("e", filter, "e.received_at")
-	rows, err := store.db.QueryContext(ctx, `SELECT DATE_FORMAT(e.received_at,'%Y-%m-%d'),COALESCE(e.client_version,'legacy'),COALESCE(e.platform,'legacy'),e.ad_format,e.ad_placement,
+	rows, err := store.db.QueryContext(ctx, `SELECT DATE_FORMAT(e.received_at,'%Y-%m-%d'),COALESCE(e.client_version,'legacy'),COALESCE(e.platform,'legacy'),e.ad_format,`+placement+` AS consumption_placement,
 		COALESCE(e.ad_error_stage,'legacy'),e.ad_error_code,COALESCE(e.ad_sub_error_code,''),COUNT(*)
 		FROM analytics_events e WHERE `+where+` AND e.event_name IN ('ad_fail','ad_reward_claim_fail')
-		GROUP BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,e.ad_placement,e.ad_error_stage,e.ad_error_code,e.ad_sub_error_code
-		ORDER BY DATE_FORMAT(e.received_at,'%Y-%m-%d') DESC,COUNT(*) DESC,e.client_version,e.platform,e.ad_format,e.ad_placement`, args...)
+		GROUP BY DATE_FORMAT(e.received_at,'%Y-%m-%d'),e.client_version,e.platform,e.ad_format,consumption_placement,e.ad_error_stage,e.ad_error_code,e.ad_sub_error_code
+		ORDER BY DATE_FORMAT(e.received_at,'%Y-%m-%d') DESC,COUNT(*) DESC,e.client_version,e.platform,e.ad_format,consumption_placement`, args...)
 	if err != nil {
 		return nil, fmt.Errorf("查询广告失败明细失败: %w", err)
 	}
@@ -354,8 +356,12 @@ func (store *AnalyticsStore) Overview(ctx context.Context, filter analytics.Filt
 		result.AverageOnline = float64(totalOnline) / float64(result.ActivePlayers)
 	}
 
-	// 老板总览使用新增 cohort：日期筛选的是首次出现日期，之后看这批玩家截至当前的累计行为。
+	// 与新增玩家使用同一 cohort：日期筛选首次进入日期，第二关事件看累计到达。
 	playerWhere, playerArgs := playerDateWhere("p", filter, "p.first_seen_date", fromDate, toDate)
+	if err := store.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM analytics_player_stats p WHERE `+playerWhere+` AND `+secondLevelEnteredCondition("p"), playerArgs...).Scan(&result.EffectiveLoginPlayers); err != nil {
+		return result, fmt.Errorf("查询新增有效登录玩家失败: %w", err)
+	}
+
 	var cohortOnline int64
 	mainLevelEntered := mainLevelEnteredCondition("p")
 	if err := store.db.QueryRowContext(ctx, `SELECT COUNT(*),COALESCE(SUM(p.login_count),0),COUNT(CASE WHEN p.enter_game_count>0 THEN 1 END),COUNT(CASE WHEN `+mainLevelEntered+` THEN 1 END),COUNT(CASE WHEN p.main_level_start_count>0 THEN 1 END),COALESCE(SUM(p.online_duration),0) FROM analytics_player_stats p WHERE `+playerWhere, playerArgs...).Scan(
@@ -640,6 +646,39 @@ func (store *AnalyticsStore) Daily(ctx context.Context, filter analytics.Filter)
 			items = append(items, analytics.DailyItem{Date: date, NewPlayers: count})
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	// 按新增日期归属，每名玩家只进入自己的新增日；次日到达第二关也归回新增日。
+	effectiveRows, err := store.db.QueryContext(ctx, `SELECT DATE_FORMAT(p.first_seen_date,'%Y-%m-%d') AS stat_day, COUNT(*) FROM analytics_player_stats p WHERE `+wherePlayers+` AND `+secondLevelEnteredCondition("p")+` GROUP BY p.first_seen_date ORDER BY p.first_seen_date`, argsPlayers...)
+	if err != nil {
+		return nil, fmt.Errorf("查询每日有效登录失败: %w", err)
+	}
+	defer effectiveRows.Close()
+	for effectiveRows.Next() {
+		var day string
+		var count int64
+		if err := effectiveRows.Scan(&day, &count); err != nil {
+			return nil, err
+		}
+		found := false
+		for index := range items {
+			if items[index].Date == day {
+				items[index].EffectiveLoginPlayers = count
+				found = true
+				break
+			}
+		}
+		if !found {
+			items = append(items, analytics.DailyItem{Date: day, EffectiveLoginPlayers: count})
+		}
+	}
+	if err := effectiveRows.Err(); err != nil {
+		return nil, err
+	}
 	sort.Slice(items, func(left, right int) bool { return items[left].Date < items[right].Date })
 	return items, rows.Err()
 }
@@ -800,6 +839,12 @@ func playerDateWhere(alias string, filter analytics.Filter, dateColumn, fromDate
 	}
 	return strings.Join(clauses, " AND "), args
 }
+
+// 复用原始关卡事件，不能用存档等级或下一关按钮替代实际进入 LEVEL 2。
+func secondLevelEnteredCondition(alias string) string {
+	return `EXISTS (SELECT 1 FROM analytics_events e WHERE e.player_id=` + alias + `.player_id AND e.app_id=` + alias + `.app_id AND e.sdk_type=` + alias + `.sdk_type AND e.channel=` + alias + `.channel AND e.event_name='level_start' AND e.level=1)`
+}
+
 func eventDateWhere(alias string, filter analytics.Filter, dateColumn string) (string, []any) {
 	clauses := []string{alias + `.app_id=?`, alias + `.channel=?`, dateColumn + `>=?`, dateColumn + `<?`}
 	args := []any{filter.AppID, filter.Channel, filter.From.UTC(), filter.To.UTC()}
@@ -808,4 +853,14 @@ func eventDateWhere(alias string, filter analytics.Filter, dateColumn string) (s
 		args = append(args, *filter.SDKType)
 	}
 	return strings.Join(clauses, " AND "), args
+}
+
+// 同一预热实例可被另一业务消费。原始事件保留来源，报表按真实 ad_request 关联消费业务；
+// 不依赖跨日请求落在当前筛选窗口，且限定玩家/应用/渠道/平台，避免跨账号串归因。
+func adConsumptionPlacementSQL() string {
+	return `COALESCE((SELECT MIN(consumer.ad_placement) FROM analytics_events consumer
+ WHERE consumer.ad_attempt_id=e.ad_attempt_id AND e.ad_attempt_id IS NOT NULL AND e.ad_attempt_id<>''
+ AND consumer.player_id=e.player_id AND consumer.app_id=e.app_id AND consumer.sdk_type=e.sdk_type
+ AND consumer.channel=e.channel AND consumer.platform <=> e.platform AND consumer.ad_format=e.ad_format
+ AND consumer.event_name='ad_request'),e.ad_placement)`
 }

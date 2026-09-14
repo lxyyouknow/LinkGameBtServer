@@ -60,7 +60,7 @@ func TestIntegrationSeason通关领取幂等与原子发奖(t *testing.T) {
 		t.Fatalf("登录任务幂等重放不一致=%#v err=%v", loginReplay, err)
 	}
 	clear, err := store.Claim(ctx, created.ID, season.TaskClearLevels, "season-claim:clear", window.SeasonKey, window.DayKey, window, now.Add(12*time.Second))
-	if err != nil || len(clear.GrantedRewards) != 5 || clear.Save.Revision != 2 || clear.Save.HintCount != 3 || clear.Save.ShuffleCount != 3 || clear.Save.RemoveCount != 3 || !reflect.DeepEqual(clear.Season.ClaimedDays, []int{5}) {
+	if err != nil || len(clear.GrantedRewards) != 5 || clear.Save.Revision != 2 || clear.Save.HintCount != 4 || clear.Save.ShuffleCount != 4 || clear.Save.RemoveCount != 4 || !reflect.DeepEqual(clear.Season.ClaimedDays, []int{5}) {
 		t.Fatalf("通关任务原子发奖=%#v err=%v", clear, err)
 	}
 	clearReplay, err := store.Claim(ctx, created.ID, season.TaskClearLevels, "season-claim:clear", window.SeasonKey, window.DayKey, window, now.Add(13*time.Second))
@@ -151,7 +151,7 @@ func TestIntegrationSeason两项任务并发领取只发奖一次(t *testing.T) 
 		t.Fatalf("并发领取最终状态=%#v err=%v", final, err)
 	}
 	save, err := NewSaveStore(db).GetSave(ctx, created.ID)
-	if err != nil || save.Revision != 2 || save.HintCount != 3 || save.ShuffleCount != 3 || save.RemoveCount != 3 {
+	if err != nil || save.Revision != 2 || save.HintCount != 4 || save.ShuffleCount != 4 || save.RemoveCount != 4 {
 		t.Fatalf("并发领取最终存档=%#v err=%v", save, err)
 	}
 }

@@ -66,3 +66,11 @@ func TestClaim要求稳定幂等键(t *testing.T) {
 		t.Fatalf("store=%#v", store)
 	}
 }
+
+func TestCreate魔药沿用一次性会话(t *testing.T) {
+	store := &fakeStore{}
+	result, err := NewService(store).Create(context.Background(), 7, PlacementPotion, "potion:level-session")
+	if err != nil || result.Placement != PlacementPotion || store.businessKey != "potion:level-session" {
+		t.Fatalf("result=%+v err=%v", result, err)
+	}
+}

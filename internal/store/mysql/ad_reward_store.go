@@ -299,7 +299,7 @@ func (store *AdRewardStore) Claim(ctx context.Context, playerID uint64, sessionI
 		if !row.claimRequestID.Valid || row.claimRequestID.String != requestID {
 			return adreward.ClaimResult{}, adreward.ErrAlreadyClaimed
 		}
-		if row.placement == adreward.PlacementSeasonMakeup && (!row.adAttemptID.Valid || row.adAttemptID.String != adAttemptID) {
+		if (row.adAttemptID.Valid || adAttemptID != "") && (!row.adAttemptID.Valid || row.adAttemptID.String != adAttemptID) {
 			return adreward.ClaimResult{}, adreward.ErrIdempotencyKeyReused
 		}
 		var replay adreward.ClaimResult
@@ -319,7 +319,7 @@ func (store *AdRewardStore) Claim(ctx context.Context, playerID uint64, sessionI
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return adreward.ClaimResult{}, fmt.Errorf("检查广告奖励幂等键失败: %w", err)
 	}
-	if row.placement == adreward.PlacementSeasonMakeup && adAttemptID == "" {
+	if (row.placement == adreward.PlacementSeasonMakeup || row.placement == adreward.PlacementPotion) && adAttemptID == "" {
 		return adreward.ClaimResult{}, adreward.ErrInvalidRequest
 	}
 	if adAttemptID != "" {
@@ -372,8 +372,11 @@ func (store *AdRewardStore) Claim(ctx context.Context, playerID uint64, sessionI
 
 func grantAdReward(ctx context.Context, tx *sql.Tx, playerID uint64, row adSessionRow, adAttemptID string, now time.Time) ([]adreward.Reward, *dailychallenge.State, *season.State, error) {
 	switch row.placement {
+	case adreward.PlacementPotion:
+		// 魔药只核销当前广告会话；关卡资格由客户端持有，不修改库存或 revision。
+		return []adreward.Reward{}, nil, nil, nil
 	case adreward.PlacementHint:
-		rewards, err := grantAdProp(ctx, tx, playerID, row.sessionID, player.PropTypeHint, 3, now)
+		rewards, err := grantAdProp(ctx, tx, playerID, row.sessionID, player.PropTypeHint, 1, now)
 		return rewards, nil, nil, err
 	case adreward.PlacementShuffle:
 		rewards, err := grantAdProp(ctx, tx, playerID, row.sessionID, player.PropTypeShuffle, 1, now)

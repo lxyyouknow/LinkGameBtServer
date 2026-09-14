@@ -65,7 +65,7 @@ func TestIntegrationAuthStoreLoginIdentity(t *testing.T) {
 			secondPlayer,
 		)
 	}
-	assertIntegrationPropCounts(t, ctx, db, firstPlayer.ID, 0, 0, 0)
+	assertIntegrationPropCounts(t, ctx, db, firstPlayer.ID, 1, 1, 1)
 
 	if _, err := db.ExecContext(ctx, `UPDATE player_saves SET hint_count = 4, shuffle_count = 5, remove_count = 6 WHERE player_id = ?`, firstPlayer.ID); err != nil {
 		t.Fatalf("准备旧玩家库存失败: %v", err)
@@ -211,7 +211,7 @@ func TestIntegrationAuthStoreConcurrentIdentityCreation(t *testing.T) {
 	if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM player_public_profiles WHERE player_id=?`, firstPlayer.ID).Scan(&publicProfileCount); err != nil || publicProfileCount != 1 {
 		t.Fatalf("并发创建后的公开编号数量=%d err=%v，期望 1", publicProfileCount, err)
 	}
-	assertIntegrationPropCounts(t, ctx, db, firstPlayer.ID, 0, 0, 0)
+	assertIntegrationPropCounts(t, ctx, db, firstPlayer.ID, 1, 1, 1)
 }
 
 func assertIntegrationPropCounts(

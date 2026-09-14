@@ -32,6 +32,7 @@ mkdir -p "$dist_dir" "$package_dir/bin" "$package_dir/deploy/systemd" "$package_
   CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o "$package_dir/bin/linkgame-bt-check-config" ./cmd/check-config
 )
 cp "$project_dir/deploy/check-target.sh" "$package_dir/deploy/"
+cp -R "$project_dir/deploy/config" "$package_dir/deploy/config"
 cp -R "$project_dir/migrations" "$package_dir/migrations"
 cp "$project_dir/deploy/systemd/linkgame-bt.service" "$package_dir/deploy/systemd/"
 cp "$project_dir/deploy/systemd/app.env.example" "$package_dir/deploy/systemd/"

@@ -46,6 +46,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'migration 工具构建失败。' }
     } finally { Pop-Location }
     Copy-Item -LiteralPath (Join-Path $ProjectDir 'deploy\check-target.sh') -Destination (Join-Path $PackageDir 'deploy')
+    Copy-Item -LiteralPath (Join-Path $ProjectDir 'deploy\config') -Destination (Join-Path $PackageDir 'deploy\config') -Recurse
     Copy-Item -LiteralPath (Join-Path $ProjectDir 'migrations') -Destination $PackageDir -Recurse
     Copy-Item -LiteralPath (Join-Path $ProjectDir 'deploy\systemd\linkgame-bt.service') -Destination (Join-Path $PackageDir 'deploy\systemd')
     Copy-Item -LiteralPath (Join-Path $ProjectDir 'deploy\systemd\app.env.example') -Destination (Join-Path $PackageDir 'deploy\systemd')
@@ -107,6 +108,7 @@ tar -xzf '__ARCHIVE__' -C "$release_dir" --strip-components=1
 [ -x "$release_dir/bin/linkgame-bt-api" ]
 [ -x "$release_dir/bin/linkgame-bt-migrate" ]
 set -a
+if [ ! -e "$root/shared/ad-policy.json" ]; then cp "$release_dir/deploy/config/ad-policy.json" "$root/shared/ad-policy.json"; fi
 . "$root/shared/app.env"
 set +a
 sh "$release_dir/deploy/check-target.sh"

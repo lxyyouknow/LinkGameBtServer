@@ -16,6 +16,7 @@ type Placement string
 
 const (
 	PlacementHint                 Placement = "hint"
+	PlacementPotion               Placement = "potion"
 	PlacementShuffle              Placement = "shuffle"
 	PlacementAutoRemove           Placement = "auto_remove"
 	PlacementLevelComplete        Placement = "level_complete"
@@ -88,7 +89,7 @@ func (service *Service) Claim(ctx context.Context, playerID uint64, sessionID, r
 
 func validPlacement(value Placement) bool {
 	switch value {
-	case PlacementHint, PlacementShuffle, PlacementAutoRemove, PlacementLevelComplete, PlacementDailyGift, PlacementDailyChallengeReplay, PlacementSeasonMakeup:
+	case PlacementPotion, PlacementHint, PlacementShuffle, PlacementAutoRemove, PlacementLevelComplete, PlacementDailyGift, PlacementDailyChallengeReplay, PlacementSeasonMakeup:
 		return true
 	default:
 		return false

@@ -93,7 +93,7 @@ func TestIntegrationDailyGift领取与幂等重放(t *testing.T) {
 	if err != nil {
 		t.Fatalf("免费领取每日礼包失败: %v", err)
 	}
-	if result.Gift.State != "claimed" || result.Save.Coins != 0 || result.Save.ShuffleCount != 1 || result.Save.Revision != 2 ||
+	if result.Gift.State != "claimed" || result.Save.Coins != 0 || result.Save.ShuffleCount != 2 || result.Save.Revision != 2 ||
 		len(result.GrantedRewards) != 2 {
 		t.Fatalf("每日礼包基础领取结果错误: %#v", result)
 	}
@@ -118,7 +118,7 @@ func TestIntegrationDailyGift领取与幂等重放(t *testing.T) {
 	if err != nil {
 		t.Fatalf("核销每日礼包广告会话失败: %v", err)
 	}
-	if bonus.Save.Revision != 3 || bonus.Save.ShuffleCount != 2 || len(bonus.GrantedRewards) != 2 {
+	if bonus.Save.Revision != 3 || bonus.Save.ShuffleCount != 3 || len(bonus.GrantedRewards) != 2 {
 		t.Fatalf("每日礼包追加领取结果错误: %#v", bonus)
 	}
 

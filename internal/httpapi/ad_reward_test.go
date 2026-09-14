@@ -56,7 +56,7 @@ func (service *fakeAdRewardService) Claim(
 		GrantedRewards: []adreward.Reward{{
 			Type:     "prop",
 			PropType: player.PropTypeHint,
-			Quantity: 3,
+			Quantity: 1,
 		}},
 		Save: player.Save{Revision: 7, HintCount: 3, ShuffleCount: 1, RemoveCount: 2},
 	}, nil

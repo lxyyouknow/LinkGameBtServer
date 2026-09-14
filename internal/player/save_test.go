@@ -117,9 +117,9 @@ func TestThemeFragmentCount(t *testing.T) {
 	}
 }
 
-func TestInitialPropCounts全部为零(t *testing.T) {
+func TestInitialPropCounts全部为一(t *testing.T) {
 	counts := InitialPropCounts()
-	if counts.Hint != 0 || counts.Shuffle != 0 || counts.Remove != 0 {
-		t.Fatalf("初始道具库存 = %#v，期望全部为 0", counts)
+	if counts.Hint != 1 || counts.Shuffle != 1 || counts.Remove != 1 {
+		t.Fatalf("初始道具库存 = %#v，期望全部为 1", counts)
 	}
 }
